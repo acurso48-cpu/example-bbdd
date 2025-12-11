@@ -8,66 +8,134 @@
 
 ### 3.7. Depurando nuestra Base de Datos: El Database Inspector
 
-Una de las tareas más comunes (y a veces frustrantes) al trabajar con bases de datos es comprobar si los datos se están guardando, actualizando o borrando correctamente. ¿Cómo podemos "ver" lo que hay dentro de la base de datos de nuestra app mientras se ejecuta?
+(Sección que explica cómo usar el Database Inspector para ver y depurar la base de datos en tiempo real)
 
-Aquí es donde brilla una de las herramientas más útiles de Android Studio: el **Database Inspector**.
+### 3.8. Probando nuestra Base de Datos: Testing de DAOs
 
-El Database Inspector te permite inspeccionar, consultar y modificar las bases de datos de tu aplicación en tiempo real mientras está en ejecución en un emulador o dispositivo.
+Escribir código es solo la mitad del trabajo. La otra mitad es asegurarnos de que funciona como esperamos. ¿Cómo podemos estar seguros de que nuestras consultas en el `UserDao` insertan, leen o borran los datos correctamente? La respuesta es con **tests unitarios**.
 
-#### ¿Cómo lo usamos?
+El objetivo de un test unitario para un DAO es probar cada consulta de forma aislada, sin necesidad de ejecutar la aplicación completa.
 
-**Paso 1: Ejecutar la aplicación**
+#### Paso 1: Añadir las Dependencias de Testing
 
-Primero, asegúrate de que tu aplicación se está ejecutando en un emulador o un dispositivo conectado con un **nivel de API 26 o superior**.
+Para poder probar Room y las corrutinas de forma efectiva, necesitamos añadir unas dependencias específicas de `testImplementation` a nuestro fichero `app/build.gradle.kts`.
 
-**Paso 2: Abrir el Database Inspector**
+```groovy
+// app/build.gradle.kts
+dependencies {
+    // ... otras dependencias ...
 
-En el menú inferior de Android Studio, busca y haz clic en la pestaña **App Inspection**. Si no la ves, puedes abrirla desde el menú principal: **View > Tool Windows > App Inspection**.
+    // Room testing
+    testImplementation("androidx.room:room-testing:2.6.1")
 
-![Abrir App Inspection](https://i.imgur.com/vjE7q6p.png)
+    // Coroutines testing
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+}
+```
+Ya hemos añadido estas dependencias a nuestro proyecto y sincronizado Gradle.
 
-**Paso 3: Seleccionar el proceso**
+#### Paso 2: Crear la Clase de Test
 
-Dentro de la ventana de App Inspection, asegúrate de que el proceso de tu aplicación esté seleccionado. Por lo general, se selecciona automáticamente.
+Los tests unitarios en Android se colocan en la carpeta `src/test/java/com/paquetes/de/tu/app`. Hemos creado un nuevo fichero llamado `UserDaoTest.kt`.
 
-En el panel que aparece, haz clic en la pestaña **Database Inspector**.
+```kotlin
+// app/src/test/java/com/kuvuni/examplesqlite/UserDaoTest.kt
+package com.kuvuni.examplesqlite
 
-**Paso 4: Explorar la Base de Datos**
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.kuvuni.examplesqlite.db.AppDatabase
+import com.kuvuni.examplesqlite.db.dao.UserDao
+import com.kuvuni.examplesqlite.db.entity.User
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import java.io.IOException
 
-¡Ya estás dentro! El Database Inspector te mostrará las bases de datos de tu app. En el panel izquierdo, verás las tablas que contiene (en nuestro caso, la tabla `user`).
+@RunWith(RobolectricTestRunner::class)
+class UserDaoTest {
 
-*   Haz doble clic sobre la tabla `user`.
-*   En el panel derecho, verás todos los datos de la tabla, presentados en un formato de filas y columnas, igual que en una hoja de cálculo.
+    private lateinit var userDao: UserDao
+    private lateinit var db: AppDatabase
 
-![Vista del Database Inspector](https://i.imgur.com/PZc3XkQ.png)
+    @Before
+    fun createDb() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        userDao = db.userDao()
+    }
 
-#### Funcionalidades Clave
+    @After
+    @Throws(IOException::class)
+    fun closeDb() {
+        db.close()
+    }
 
-1.  **Live Updates (Actualizaciones en Vivo)**
+    @Test
+    @Throws(Exception::class)
+    fun insertAndGetUser() = runBlocking {
+        val user = User(uid = 1, firstName = "John", lastName = "Doe", age = 30, email = "john.doe@example.com")
+        userDao.insert(user)
+        val userFromDb = userDao.getUserById(1)
+        assertEquals(user, userFromDb)
+    }
+}
+```
 
-    En la parte superior del panel derecho, hay un botón de `Live updates`. Si lo activas, el inspector actualizará la vista de la tabla automáticamente cada vez que los datos cambien en la aplicación. 
+#### Analizando el Código del Test
 
-    *   **Pruébalo**: Con `Live updates` activado, si tu app tiene un botón para añadir un nuevo usuario, púlsalo. Verás cómo la nueva fila aparece instantáneamente en el inspector. ¡Es casi mágico!
+*   **`@RunWith(RobolectricTestRunner::class)`**: Esta anotación nos permite usar APIs del framework de Android (como `Context`) en un test unitario que se ejecuta en nuestra máquina local, sin necesidad de un emulador.
 
-2.  **Ejecutar Consultas Personalizadas**
+*   **Base de Datos en Memoria**: 
+    ```kotlin
+    db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+    ```
+    Esta es la clave del testing de Room. En lugar de crear un fichero de base de datos real en el disco, `inMemoryDatabaseBuilder` crea una base de datos temporal que solo existe en la memoria RAM mientras se ejecuta el test. Esto tiene dos ventajas enormes:
+    1.  **Velocidad**: Es mucho más rápido.
+    2.  **Aislamiento**: Cada test se ejecuta con una base de datos limpia. Los datos de un test no afectan a otro.
 
-    Esta es una funcionalidad extremadamente potente para depurar. El inspector te permite ejecutar consultas SQL directamente sobre la base de datos en ejecución.
+*   **`@Before` y `@After`**: Son anotaciones de JUnit.
+    *   El método anotado con `@Before` (`createDb`) se ejecuta **antes** de cada uno de los tests. Es el lugar perfecto para inicializar la base de datos y el DAO.
+    *   El método anotado con `@After` (`closeDb`) se ejecuta **después** de cada test. Se usa para limpiar recursos, como cerrar la conexión a la base de datos.
 
-    *   Haz clic en el botón **Open New Query**.
-    *   Se abrirá una nueva pestaña donde podrás escribir cualquier consulta SQL. Por ejemplo, prueba a escribir:
-        ```sql
-        SELECT * FROM user WHERE age > 30 ORDER BY age DESC;
+*   **`@Test`**: Esta anotación marca una función como un test. La función `insertAndGetUser` es nuestro caso de prueba.
+
+*   **`runBlocking`**: Como nuestro método `insert` es una función `suspend`, necesitamos llamarla desde una corrutina. `runBlocking` es un constructor de corrutinas que se usa en los tests para ejecutar código `suspend` de forma síncrona.
+
+*   **La Estructura de un Test: Given, When, Then**
+    Nuestro test sigue un patrón clásico:
+    1.  **Given (Preparar)**: Creamos el objeto `User` que vamos a insertar.
+        ```kotlin
+        val user = User(...)
         ```
-    *   Pulsa el botón "Run" y verás el resultado de tu consulta.
+    2.  **When (Ejecutar)**: Llamamos al método del DAO que queremos probar.
+        ```kotlin
+        userDao.insert(user)
+        ```
+    3.  **Then (Comprobar)**: Leemos los datos de la base de datos y usamos `assertEquals` para verificar que lo que hemos recuperado es exactamente lo que esperábamos.
+        ```kotlin
+        val userFromDb = userDao.getUserById(1)
+        assertEquals(user, userFromDb)
+        ```
+    Si `user` y `userFromDb` son iguales, el test pasará (se pondrá en verde). Si no, fallará (se pondrá en rojo).
 
-    Esto es increíblemente útil para probar consultas complejas antes de ponerlas en tu `@Dao`, o para buscar datos específicos mientras depuras un problema.
+## Conclusión Final del Tutorial
 
-3.  **Modificar Datos (¡con cuidado!)**
+¡Felicidades! Has completado un recorrido exhaustivo por el mundo de la persistencia de datos en Android. Has aprendido:
 
-    Incluso puedes modificar los datos directamente desde el inspector. Haz doble clic en una celda (por ejemplo, en el nombre de un usuario), escribe un nuevo valor y pulsa Intro. El cambio se guardará en la base de datos del dispositivo.
+*   Los **fundamentos teóricos** de las bases de datos.
+*   La diferencia entre BBDD **relacionales y no relacionales**.
+*   Cómo **practicar SQL** de forma independiente.
+*   A construir una base de datos completa con **Room**: Entidades, DAOs y la clase Database.
+*   A **evolucionar tu base de datos** de forma segura con Migraciones.
+*   A **depurar e inspeccionar** tus datos en tiempo real.
+*   Y, finalmente, a **garantizar la calidad** de tus consultas con Tests Unitarios.
 
-    > **Advertencia**: Esta función es muy útil para hacer pruebas rápidas, pero úsala con precaución. Estás modificando los datos en vivo y esto puede causar comportamientos inesperados en tu app si no lo tienes en cuenta.
-
-## Conclusión de la Sección
-
-El Database Inspector es una herramienta que todo desarrollador de Android debe dominar. Convierte la base de datos de una "caja negra" a una "caja de cristal", permitiéndote ver exactamente qué está pasando con los datos de tu aplicación en todo momento. Te ahorrará incontables horas de depuración.
+Con estas habilidades, estás más que preparado para manejar la persistencia de datos en cualquier aplicación Android de forma profesional, robusta y eficiente.
