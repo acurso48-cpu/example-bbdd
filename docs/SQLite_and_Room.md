@@ -162,6 +162,7 @@ interface UserDao {
 *   `suspend`: Marcar una función como `suspend` es crucial. Le indica a Room que la operación puede ser larga y debe ejecutarse en un hilo de fondo para no bloquear la interfaz de usuario.
 *   `@Query`: La anotación más potente. Nos permite escribir cualquier consulta SQL. Room las valida en tiempo de compilación, lo que nos ahorra errores en tiempo de ejecución.
 
+
 ### 3.4. Uniendo las Piezas: La Clase `Database` (`@Database`)
 
 Ya tenemos las `Entity` (las tablas) y los `DAO` (las consultas). La pieza final es la clase que une todo: la base de datos principal. Es una clase abstracta que hereda de `RoomDatabase` y actúa como el punto de acceso central a toda la base de datos de la app.
