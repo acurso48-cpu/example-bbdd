@@ -291,6 +291,62 @@ La solución profesional es una **migración**.
     ```
 Este proceso garantiza que los usuarios que actualicen la app no pierdan los datos que ya tenían guardados.
 
+
+**Ejemplo 2: Añadir una columna `password` (Migración de 2 a 3)**
+
+Siguiendo el mismo principio, vamos a añadir un campo para una contraseña.
+
+**1. Actualizar la Entidad `User`:**
+
+Añadimos `password` a la `data class`.
+
+```kotlin
+@Entity(tableName = "user")
+data class User(
+    // ... campos existentes
+    @ColumnInfo(name = "password")
+    val password: String
+)
+```
+
+**2. Incrementar la versión y crear la nueva `Migration`:**
+
+En `AppDatabase.kt`, subimos la versión a 3 y definimos la migración de 2 a 3.
+
+```kotlin
+@Database(entities = [User::class], version = 3, exportSchema = true)
+abstract class AppDatabase : RoomDatabase() {
+    // ...
+
+    companion object {
+        // ... MIGRATION_1_2
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE user ADD COLUMN password TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "user_database"
+                )
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // Añadir la nueva migración
+                .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
+```
+
+*   **`ALTER TABLE user ADD COLUMN password TEXT NOT NULL DEFAULT ''`**: De nuevo, es crucial proporcionar un `DEFAULT` para las filas existentes, ya que la nueva columna es `NOT NULL`. La lógica para hashear la contraseña (ej. con MD5 o, mejor aún, con algoritmos modernos como Argon2 o Scrypt) se debe implementar en el código de tu aplicación antes de guardar el dato, no en la base de datos directamente.
+
+
 ### 3.7. Depurando nuestra Base de Datos: El Database Inspector
 
 Android Studio incluye una herramienta increíblemente útil, el **App Inspector**, que contiene el **Database Inspector**. Para usarlo:
