@@ -57,6 +57,12 @@ dependencies {
     // Room testing
     testImplementation("androidx.room:room-testing:2.6.1")
 
+
+    // Librerías para Tests Unitarios
+    testImplementation("androidx.test:core-ktx:1.6.1")
+    testImplementation(libs.robolectric)
+
+
     // Coroutines testing
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
 }

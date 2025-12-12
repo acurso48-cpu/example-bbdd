@@ -359,6 +359,8 @@ Desde ahí, podrás ver las tablas, los datos en tiempo real, e incluso ejecutar
 
 ### 3.8. Probando nuestra Base de Datos: Testing de DAOs
 
+NOTA: Este apartado es opcional y no te va a dar errores. ¡Buscaté la vida para que funcione! 
+
 Para garantizar que nuestras consultas funcionan, escribimos tests unitarios para los DAOs. Estos tests se ejecutan en un entorno controlado y no necesitan un dispositivo.
 
 Hemos creado la clase `UserDaoTest.kt` en `src/test/java/...`:
