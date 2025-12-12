@@ -1,0 +1,5 @@
+toml
+[versions]
+# ... (otras versiones)
+androidx-test-core = "1.6.1"
+robolectric = "4.12.1"
