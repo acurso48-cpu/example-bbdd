@@ -15,7 +15,7 @@ Nuestra interfaz de usuario facilitará estas cuatro operaciones en la tabla `Us
 
 ## 1. Diseñando la Interfaz de Usuario en `activity_main.xml`
 
-Vamos a modificar el archivo `app/src/main/res/layout/activity_main.xml` para añadir los campos de texto (EditText) para introducir los datos del usuario, y botones (Button) para disparar las acciones de CRUD. Para poder actualizar y eliminar, añadiremos un campo para el ID del usuario.
+Vamos a modificar el archivo `app/src/main/res/layout/activity_main.xml` para añadir los campos de texto (EditText) para introducir los datos del usuario, y botones (Button) para disparar las acciones de CRUD.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -28,29 +28,16 @@ Vamos a modificar el archivo `app/src/main/res/layout/activity_main.xml` para a�
     tools:context=".MainActivity">
 
     <EditText
-        android:id="@+id/etUserId"
+        android:id="@+id/etFirstName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="ID de Usuario (para Actualizar/Eliminar)"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
-        android:id="@+id/etFirstName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
         android:hint="Nombre"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etUserId" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/etLastName"
@@ -137,13 +124,13 @@ Vamos a modificar el archivo `app/src/main/res/layout/activity_main.xml` para a�
 
 **Explicación de los componentes:**
 
-*   **`EditText`**: Hemos añadido campos de texto para el ID, nombre, apellido y email. El ID es crucial para saber qué registro actualizar o eliminar.
-*   **`Button`**: Cuatro botones para las operaciones CRUD.
-*   **`TextView`**: Un campo de texto (`tvResults`) para mostrar los resultados.
+*   **`EditText`**: Hemos añadido tres campos de texto para que el usuario pueda introducir el nombre (`etFirstName`), el apellido (`etLastName`) y el email (`etEmail`) de un usuario.
+*   **`Button`**: Cuatro botones para las operaciones CRUD: `btnCreate`, `btnRead`, `btnUpdate`, y `btnDelete`.
+*   **`TextView`**: Un campo de texto (`tvResults`) para mostrar los resultados de las operaciones, como la lista de usuarios recuperados de la base de datos.
 
 ## 2. Conectando la UI con el Código en `MainActivity.kt`
 
-Necesitamos conectar estos elementos de la UI con nuestro código. Habilitaremos *View Binding* para ello.
+Ahora, necesitamos conectar estos elementos de la UI con nuestro código en `MainActivity.kt`. Usaremos `findViewById` o, preferiblemente, *View Binding* para acceder a ellos. Para este ejemplo, vamos a habilitar View Binding.
 
 ### Habilitar View Binding
 
@@ -158,17 +145,14 @@ android {
 }
 ```
 
-Sincroniza tu proyecto con los archivos de Gradle.
+Sincroniza tu proyecto con los archivos de Gradle. Ahora podemos usar View Binding en `MainActivity.kt`.
 
-## 3. Implementando la Lógica del CRUD
-
-Ahora, actualicemos `MainActivity.kt` para implementar la lógica de cada botón. Usaremos `lifecycleScope` para lanzar corutinas y realizar las operaciones de base de datos en un hilo secundario, evitando bloquear el hilo principal de la UI.
+### Actualizar `MainActivity.kt`
 
 ```kotlin
 package com.kuvuni.examplesqlite
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.kuvuni.examplesqlite.databinding.ActivityMainBinding
@@ -179,111 +163,38 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val db by lazy { AppDatabase.getDatabase(this) }
-    private val userDao by lazy { db.userDao() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupClickListeners()
-    }
+        val db = AppDatabase.getDatabase(this)
 
-    private fun setupClickListeners() {
         binding.btnCreate.setOnClickListener {
-            val firstName = binding.etFirstName.text.toString()
-            val lastName = binding.etLastName.text.toString()
-            val email = binding.etEmail.text.toString()
-
-            if (firstName.isNotEmpty() && lastName.isNotEmpty() && email.isNotEmpty()) {
-                val user = User(firstName = firstName, lastName = lastName, email = email)
-                lifecycleScope.launch {
-                    userDao.insert(user)
-                    clearInputFields()
-                    showToast("Usuario Creado")
-                }
-            } else {
-                showToast("Por favor, rellena todos los campos")
-            }
+            // Implementar la lógica para CREAR un usuario
         }
 
         binding.btnRead.setOnClickListener {
-            lifecycleScope.launch {
-                val users = userDao.getAll()
-                val usersText = users.joinToString(separator = "
-") {
-                    "ID: ${it.uid}, Nombre: ${it.firstName}, Apellido: ${it.lastName}, Email: ${it.email}"
-                }
-                binding.tvResults.text = if (users.isEmpty()) "No hay usuarios" else usersText
-            }
+            // Implementar la lógica para LEER los usuarios
         }
 
         binding.btnUpdate.setOnClickListener {
-            val userId = binding.etUserId.text.toString().toIntOrNull()
-            val firstName = binding.etFirstName.text.toString()
-            val lastName = binding.etLastName.text.toString()
-            val email = binding.etEmail.text.toString()
-
-            if (userId != null && firstName.isNotEmpty() && lastName.isNotEmpty() && email.isNotEmpty()) {
-                val user = User(uid = userId, firstName = firstName, lastName = lastName, email = email)
-                lifecycleScope.launch {
-                    userDao.update(user)
-                    showToast("Usuario Actualizado")
-                }
-            } else {
-                showToast("Por favor, introduce un ID válido y rellena todos los campos")
-            }
+            // Implementar la lógica para ACTUALIZAR un usuario
         }
 
         binding.btnDelete.setOnClickListener {
-            val userId = binding.etUserId.text.toString().toIntOrNull()
-
-            if (userId != null) {
-                lifecycleScope.launch {
-                    val user = User(uid = userId, firstName = "", lastName = "", email = "") // Solo el ID es necesario para el borrado
-                    userDao.delete(user)
-                    showToast("Usuario Eliminado")
-                }
-            } else {
-                showToast("Por favor, introduce un ID de usuario")
-            }
+            // Implementar la lógica para ELIMINAR un usuario
         }
-    }
-    
-    private fun clearInputFields() {
-        binding.etUserId.text.clear()
-        binding.etFirstName.text.clear()
-        binding.etLastName.text.clear()
-        binding.etEmail.text.clear()
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
 ```
 
-### Explicación de la Lógica:
+**Explicación de los cambios:**
 
-1.  **Inicialización `lazy`**: `db` y `userDao` se inicializan de forma diferida (`by lazy`), lo que significa que se crearán la primera vez que se accedan, no al crear la `Activity`.
-2.  **`btnCreate`**:
-    *   Recoge el texto de los `EditText`.
-    *   Crea una nueva instancia de `User` (el ID se autogenera).
-    *   Lanza una corutina para llamar a `userDao.insert()`.
-    *   Limpia los campos y muestra un mensaje.
-3.  **`btnRead`**:
-    *   Lanza una corutina para obtener todos los usuarios con `userDao.getAll()`.
-    *   Formatea la lista de usuarios en un `String`.
-    *   Muestra el resultado en el `TextView`.
-4.  **`btnUpdate`**:
-    *   Recoge el ID y los demás datos. El ID es crucial.
-    *   Crea un objeto `User`, **incluyendo el ID** del usuario que se va a actualizar.
-    *   Llama a `userDao.update()` dentro de una corutina.
-5.  **`btnDelete`**:
-    *   Recoge el ID del usuario a eliminar.
-    *   Crea un objeto `User` donde solo nos importa el `uid`. Room usará este `uid` para encontrar y eliminar el registro.
-    *   Llama a `userDao.delete()` dentro de una corutina.
-6.  **Funciones de Ayuda**: `clearInputFields` y `showToast` nos ayudan a reutilizar código y mantener `setupClickListeners` más limpio.
+1.  Hemos declarado una variable `binding` de tipo `ActivityMainBinding`. Esta clase es generada automáticamente por View Binding y contiene referencias a todas las vistas con un ID en nuestro layout.
+2.  En `onCreate`, inflamos el layout usando `ActivityMainBinding.inflate(layoutInflater)` y establecemos la vista de contenido con `setContentView(binding.root)`.
+3.  Ahora podemos acceder a las vistas directamente desde el objeto `binding`, por ejemplo: `binding.btnCreate`.
+4.  Hemos añadido `setOnClickListener` a cada botón. Dentro de estos listeners, implementaremos la lógica para interactuar con la base de datos en los siguientes pasos.
 
-¡Felicidades! Has implementado una aplicación completa con operaciones CRUD. Ahora tus alumnos pueden probar a crear, leer, actualizar y eliminar usuarios en la base de datos.
+¡Felicidades! Has creado la interfaz de usuario básica para tu aplicación de base de datos. En el siguiente paso, implementaremos la lógica para cada uno de los botones del CRUD.
