@@ -2,6 +2,8 @@
 
 En este paso, nos enfocaremos en construir la interfaz de usuario que permitirá a los usuarios interactuar con la base de datos. Crearemos los elementos visuales para realizar operaciones CRUD.
 
+NOTA MUY IMPORTANTE: Te vas a encontrar con errores en la compilación (no utilizes IA para aprender más), es parte de la formación. Investiga y soluciona.
+
 ## ¿Qué es un CRUD?
 
 CRUD es un acrónimo que representa las cuatro operaciones básicas que se pueden realizar en una base de datos:
