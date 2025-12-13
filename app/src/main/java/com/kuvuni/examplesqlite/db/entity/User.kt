@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 /**
  * Esta es una clase de entidad que representa la tabla 'user' en la base de datos.
@@ -17,19 +18,33 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "user")
 data class User(
     @PrimaryKey(autoGenerate = true)
-    var uid: Int = 0, // Es importante que sea var si es autoincremental y quieres que Room lo asigne
+    val uid: Int = 0,
 
-    @ColumnInfo(name = "first_name")
+    @ColumnInfo(name = "nombre")
     val firstName: String?,
 
-    @ColumnInfo(name = "last_name")
+    @ColumnInfo(name = "apellidos")
     val lastName: String?,
 
-    @ColumnInfo(defaultValue = "0")
+    //defaultValue debe ser una constante
+    @ColumnInfo(name = "edad", defaultValue = "0")
     val age: Int,
 
-    @ColumnInfo(name = "email", defaultValue = "NULL")
-    val email: String?
+    @ColumnInfo(defaultValue = "NULL")
+    val email: String?,
+
+    //@ColumnInfo()
+    // val email: String? = null,
+
+    // @ColumnInfo(defaultValue = "'DESCONOCIDO'")
+    // val email: String,
+
+    @ColumnInfo(name = "fecha_creacion")
+    val date: Long,
+
+    @ColumnInfo(name = "avatar")
+    val image: ByteArray?, //No almacenar Blob muy grandes, mejor usar un enlace a las imágenes o comprimir las imágenes.
+
 ) {
     // Room no persistirá este campo porque no está en el constructor primario
     // y está anotado con @Ignore

@@ -36,6 +36,7 @@ En resumen, gracias a KSP, nosotros solo escribimos la parte "declarativa" (qué
 **1. El Catálogo de Versiones (`gradle/libs.versions.toml`)**
 
 Una buena práctica es centralizar las versiones y las dependencias en el catálogo de versiones. Así hemos configurado el nuestro para incluir Room y KSP (el procesador de anotaciones de Kotlin).
+https://developer.android.com/jetpack/androidx/versions
 
 ```toml
 [versions]

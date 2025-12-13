@@ -47,24 +47,24 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    // Faker
+    implementation("io.github.serpro69:kotlin-faker:1.12.0")
 
     // Room testing
     testImplementation("androidx.room:room-testing:2.6.1")
 
-
     // Librerías para Tests Unitarios
     testImplementation("androidx.test:core-ktx:1.6.1")
     testImplementation(libs.robolectric)
-
 
     // Coroutines testing
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
