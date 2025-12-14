@@ -309,4 +309,20 @@ class MainActivity : AppCompatActivity() {
 
 ¡Felicidades! Ahora tienes una aplicación Android completamente funcional con una base de datos local que realiza las operaciones CRUD.
 
-En el próximo paso, veremos cómo mejorar aún más la arquitectura de la aplicación introduciendo un `ViewModel`, el componente clave en las arquitecturas modernas de Android.
+### EJERCICIOS PROPUESTOS:
+Ahora que tienes una aplicación CRUD funcional, ¡es hora de poner a prueba tus habilidades! Intenta implementar las siguientes mejoras y funcionalidades.
+
+1. **`Ordenar los Resultados`**:
+   *  Objetivo: Aprender a modificar las consultas de Room para ordenar los datos. 
+   *  Tarea: Crear una nueva consulta en UserDao que obtiene todos los usuarios para que los resultados se muestren ordenados por nombre (firstName) de forma ascendente (A-Z).
+   *  Tarea: Crear una nueva consulta en UserDao que obtiene todos los usuarios para que los resultados se muestren ordenados por id (uid) de descendente (Z-A).
+
+2. **`Ocultar el Teclado al Pulsar un Botón`**:
+   *  Objetivo: Mejorar la experiencia de usuario (UX).
+   *  Tarea: Actualmente, después de pulsar "Crear", "Actualizar" o "Eliminar", el teclado se queda visible, tapando el Snackbar que aparece en la parte inferior. Crea una función de utilidad en MainActivity para ocultar el teclado y llámala justo antes de mostrar cada Snackbar.
+
+3. **`Confirmación antes de Borrar`**
+   *  Objetivo: Prevenir acciones destructivas accidentales mostrando un diálogo de confirmación. 
+   *  Tarea: Modifica la función deleteUser. Antes de llamar al repositorio para eliminar el usuario, muestra un AlertDialog que pregunte "¿Estás seguro de que quieres eliminar a este usuario?". La eliminación solo debe proceder si el usuario pulsa el botón "Aceptar".
+
+
