@@ -21,17 +21,17 @@ data class User(
     val uid: Int = 0,
 
     @ColumnInfo(name = "nombre")
-    val firstName: String?,
+    var firstName: String?,
 
     @ColumnInfo(name = "apellidos")
-    val lastName: String?,
+    var lastName: String?,
 
     //defaultValue debe ser una constante
     @ColumnInfo(name = "edad", defaultValue = "0")
-    val age: Int,
+    var age: Int,
 
     @ColumnInfo(defaultValue = "NULL")
-    val email: String?,
+    var email: String?,
 
     //@ColumnInfo()
     // val email: String? = null,
@@ -40,14 +40,20 @@ data class User(
     // val email: String,
 
     @ColumnInfo(name = "fecha_creacion")
-    val date: Long,
+    var date: Long,
 
     @ColumnInfo(name = "avatar")
-    val image: ByteArray?, //No almacenar Blob muy grandes, mejor usar un enlace a las imágenes o comprimir las imágenes.
+    var image: ByteArray?, //No almacenar Blob muy grandes, mejor usar un enlace a las imágenes o comprimir las imágenes.
 
 ) {
+
     // Room no persistirá este campo porque no está en el constructor primario
     // y está anotado con @Ignore
     @Ignore
     val fullName: String = "$firstName $lastName"
+
+    // Constructor secundario
+    constructor(firstName: String?, lastName: String?, age: Int, date: Long) :
+            this(0, firstName, lastName, age, null, date, null)
+
 }
