@@ -25,8 +25,6 @@ Resumen rápido
 
 Esta app implementa un CRUD sencillo sobre una entidad `User` usando Room. La UI ofrece botones para crear, leer, actualizar y borrar usuarios. La persistencia está organizada en capas mínimas: Entities → DAO → Repository → UI.
 
-Recorrido por el código (qué encontré y por qué es relevante)
-
 1) Entidad — `app/src/main/java/com/kuvuni/examplesqlite/db/entity/User.kt`
     - Clase `User` anotada con `@Entity(tableName = "user")`.
     - Campos: `uid` (PrimaryKey autogenerado), `firstName`, `lastName`, `age`, `email`, `date`, `image`.
