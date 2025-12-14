@@ -424,6 +424,8 @@ class MainActivity : AppCompatActivity() {
                     //Otros campos modificados aquí.
                 )
                 userDao.update(updatedUser)
+            } ?: run {
+                //Código para ejecutar si userToUpdate es nulo
             }
 
             //Delete.
