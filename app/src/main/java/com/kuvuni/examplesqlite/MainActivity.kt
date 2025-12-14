@@ -1,6 +1,9 @@
 package com.kuvuni.examplesqlite
 
+import android.content.Context
 import android.os.Bundle
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createUser() {
+        hideKeyboard()
         val firstName = binding.etFirstName.text.toString()
         val lastName = binding.etLastName.text.toString()
         val age = binding.etAge.text.toString()
@@ -70,6 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUser() {
+        hideKeyboard()
         val userId = binding.etUserId.text.toString()
         val firstName = binding.etFirstName.text.toString()
         val lastName = binding.etLastName.text.toString()
@@ -95,18 +100,46 @@ class MainActivity : AppCompatActivity() {
     private fun deleteUser() {
         val userId = binding.etUserId.text.toString()
         if (userId.isNotBlank()) {
-            lifecycleScope.launch {
-                val user = repository.getUserById(userId.toInt()).firstOrNull() // Solo necesitamos el ID para eliminar
-                user?.let {
-                    repository.delete(user)
-                    Snackbar.make(binding.root, "Usuario eliminado", Snackbar.LENGTH_SHORT).show()
-                    clearFields()
-                } ?: run {
-                    Snackbar.make(binding.root, "Usuario no encontrado", Snackbar.LENGTH_SHORT).show()
+            // 1. Construir el AlertDialog
+            AlertDialog.Builder(this)
+                .setTitle("Confirmar Eliminación") // Título del diálogo
+                .setMessage("¿Estás seguro de que quieres eliminar al usuario con ID $userId?") // Mensaje principal
+
+                // 2. Botón de Acción Positiva ("Sí, eliminar")
+                .setPositiveButton("Aceptar") { _, _ ->
+                    // Este bloque se ejecuta SOLO si el usuario pulsa "Aceptar"
+                    lifecycleScope.launch {
+                        val user = repository.getUserById(userId.toInt()).firstOrNull()
+                        user?.let { userToDelete ->
+                            repository.delete(userToDelete)
+                            Snackbar.make(
+                                binding.root,
+                                "Usuario con ID ${userToDelete.uid} Eliminado",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                            clearFields()
+                            hideKeyboard() // ¡Buena idea llamar a la función para ocultar el teclado aquí!
+                        } ?: run {
+                            Snackbar.make(
+                                binding.root,
+                                "No se encontró un usuario con el ID $userId",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                 }
-            }
-        } else {
-            Snackbar.make(binding.root, "Por favor, introduce un ID de usuario", Snackbar.LENGTH_SHORT).show()
+
+                // 3. Botón de Acción Negativa ("No, cancelar")
+                .setNegativeButton("Cancelar") { dialog, _ ->
+                    // Este bloque se ejecuta si el usuario pulsa "Cancelar"
+                    dialog.dismiss() // Simplemente cierra el diálogo
+                    clearFields()
+                    hideKeyboard()
+                }
+
+                // 4. Crear y Mostrar el diálogo
+                .create()
+                .show()
         }
     }
 
@@ -116,4 +149,10 @@ class MainActivity : AppCompatActivity() {
         binding.etLastName.text.clear()
         binding.etAge.text.clear()
     }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+    }
+
 }
