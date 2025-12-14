@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun readUsers() {
         lifecycleScope.launch {
-            repository.allUsers.collect { users ->  //collect siempre está escuchando.
+            repository.allUsersById.collect { users ->  //collect siempre está escuchando.
                 val usersText = users.joinToString(separator = "\n") {
                     "ID: ${it.uid}, Nombre: ${it.firstName} ${it.lastName}, Edad: ${it.age}"
                 }
@@ -140,6 +140,8 @@ class MainActivity : AppCompatActivity() {
                 // 4. Crear y Mostrar el diálogo
                 .create()
                 .show()
+        } else {
+            Snackbar.make(binding.root, "Por favor, introduce un ID de usuario", Snackbar.LENGTH_SHORT).show()
         }
     }
 

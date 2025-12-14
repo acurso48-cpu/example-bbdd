@@ -56,6 +56,13 @@ interface UserDao {
     @Query("SELECT * FROM user ORDER BY apellidos ASC")
     fun getAllUsers(): Flow<List<User>>
 
+    @Query("SELECT * FROM user ORDER BY nombre ASC")
+    fun getAllUsersByName(): Flow<List<User>>
+
+    @Query("SELECT * FROM user ORDER BY uid DESC")
+    fun getAllUsersByUid(): Flow<List<User>>
+
+
     /**
      * Obtiene un usuario por su ID.
      * El ":uid" en la consulta se corresponde con el parámetro uid del método.
